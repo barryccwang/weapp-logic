@@ -2,11 +2,7 @@
 {
   "pages":[
     "pages/index/index.mina",
-    "pages/addCgi/addCgi.mina",
-    "pages/list.mina",
-    "pages/user.mina",
-    "pages/item.mina",
-    "pages/article.mina"
+    "pages/addCgi/addCgi.mina"
   ],
   "window":{
     "backgroundColor":"#F6F6F6",
