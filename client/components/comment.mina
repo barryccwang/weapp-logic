@@ -1,0 +1,141 @@
+<config>
+{
+  "usingComponents": {
+    "hn-comment": "./comment.mina",
+    "spinner": "./spinner.mina"
+  },
+  "component": true
+}
+</config>
+
+<template>
+  <view>
+    <view wx:if="{{ !comment || comment.loading  }}" class="comment loading">
+      <spinner />
+    </view>
+    <view wx:else class="comment">
+      <view class="meta">
+        <view class="by link" bindtap="tapBy">{{ comment.by }}</view>
+        <view class="time" bindtap="tapTime">{{ comment.timeAgo }} ago</view>
+      </view>
+      <view class="text"><rich-text nodes="{{ comment.decodedText }}" /></view>
+      <view wx:if="{{ comment.kids && comment.kids.length }}" class="toggle {{ open ? 'open' : '' }}">
+        <view bindtap="tapToggle">{{
+          open
+              ? '[-]'
+              : '[+] ' + comment.pluralizeKidsCount + ' collapsed'
+        }}</view>
+      </view>
+      <view class="comment-children" hidden="{{ !open }}">
+        <hn-comment wx:for="{{ comment.kids }}" wx:key="*this" comment-id="{{ item }}" />
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { decode } from 'he'
+import { Component } from '@tinajs/tina'
+import { tinax } from '../store'
+import { host, timeAgo } from '../utils/filters'
+
+Component.define(({
+  mixins: [
+    tinax.connect({
+      getters (getters) {
+        return {
+          comment: getters.getItem()(this.data.commentId),
+        }
+      },
+    }),
+  ],
+  properties: {
+    commentId: Number,
+  },
+  data: {
+    open: true,
+    comment: {},
+  },
+  compute (data) {
+    let comment = data.comment || {}
+    let repliesCount = comment.kids && comment.kids.length || 0
+    return {
+      comment: {
+        ...comment,
+        timeAgo: timeAgo(comment.time),
+        decodedText: decode(comment.text || ''),
+        pluralizeKidsCount: repliesCount + (repliesCount === 1 ? ' reply' : ' replies'),
+      },
+    }
+  },
+
+  methods: {
+    tapToggle: function () {
+      this.setData({ open: !this.data.open })
+    },
+    tapBy () {
+      let item = this.data.comment || {}
+      if (!item.by) {
+        return
+      }
+      this.$router.navigate(`/pages/user?id=${item.by}`)
+    },
+  }
+}))
+</script>
+
+<style lang="less">
+.comment-children {
+  margin-left: 1.5em;
+}
+.comment {
+  border-top: 1px solid #eee;
+  position: relative;
+  margin-bottom: 1.5em;
+  padding-top: 0.5em;
+  &.loading {
+    font-size: 12px;
+    color: #828282;
+    padding-top: 1.5em;
+  }
+  .meta, .text, .toggle {
+    margin: 1em 0;
+  }
+  .meta {
+    color: #828282;
+    view {
+      display: inline;
+    }
+    .link {
+      color: #828282;
+      text-decoration: underline;
+      margin-right: 0.5em;
+    }
+  }
+  .text {
+    overflow-wrap: break-word;
+    line-height: 1.8em;
+    .link:active {
+      color: #ff6600;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+  }
+  .toggle {
+    background-color: #fffbf2;
+    padding: .3em .5em;
+    border-radius: 4px;
+    line-height: 1em;
+    .link {
+      color: #828282;
+      cursor: pointer;
+    }
+    &.open {
+      padding: 0;
+      background-color: transparent;
+      margin-bottom: -0.5em;
+    }
+  }
+}
+</style>

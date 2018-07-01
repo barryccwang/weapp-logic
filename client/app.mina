@@ -1,0 +1,57 @@
+<config>
+{
+  "pages":[
+    "pages/index/index.mina",
+    "pages/addCgi/addCgi.mina",
+    "pages/list.mina",
+    "pages/user.mina",
+    "pages/item.mina",
+    "pages/article.mina"
+  ],
+  "window":{
+    "backgroundColor":"#F6F6F6",
+    "backgroundTextStyle":"light",
+    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarTitleText": "Logic Deduction",
+    "navigationBarTextStyle":"black"
+  }
+}
+</config>
+
+<script>
+import Tina from '@tinajs/tina'
+import router from '@tinajs/tina-router'
+import loading from '@tinajs/tina-loading'
+import modal from '@tinajs/tina-modal'
+
+Tina.use(router).use(loading).use(modal)
+
+var qcloud = require('./vendor/wafer2-client-sdk/index')
+var config = require('./config')
+
+App({
+    onLaunch: function () {
+        qcloud.setLoginUrl(config.service.loginUrl)
+    }
+})
+</script>
+
+<style>
+@import './assets/opensans.css';
+
+page {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  background-color: color(#eceef1 tint(30%));
+  margin: 0;
+  padding: 0;
+  color: #34495e;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+</style>

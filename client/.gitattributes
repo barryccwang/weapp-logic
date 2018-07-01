@@ -1,0 +1,6 @@
+# GitHub
+# https://github.com/github/linguist#overrides
+*.wxml linguist-language=xml
+*.wxss linguist-language=css
+*.wxs linguist-language=js
+*.mina linguist-language=html

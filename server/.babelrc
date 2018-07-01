@@ -1,0 +1,22 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "target": {
+          "node": "current"
+        },
+        "loose": true
+      }
+    ]
+  ],
+  "plugins": [
+    [
+      "transform-runtime",
+      {
+        "polyfill": true,
+        "regenerator": true
+      }
+    ]
+  ]
+}

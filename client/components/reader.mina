@@ -1,0 +1,180 @@
+<config>
+{
+  "component": true,
+  "usingComponents": {
+    "spinner": "./spinner.mina"
+  }
+}
+</config>
+
+<template>
+  <view class="reader-component">
+    <view wx:if="{{ !article || (!article.title && !article.content) }}" class="loading">
+      <spinner />
+    </view>
+    <view wx:else>
+      <view class="title">{{ article.title }}</view>
+      <view class="meta">
+        <view>source from: <text class="url" bindtap="tapUrl">{{ article.domain }}</text></view>
+      </view>
+      <rich-text class="reader" nodes="{{ nodes }}" />
+      <view class="meta">
+        <view>original url: <text class="url" bindtap="tapUrl">{{ article.url }}</text></view>
+        <view class="original"><button plain="true" open-type="contact" size="mini" session-from="{{ originalLinkMessage }}">显示不正常? 点击尝试阅读原文。</button></view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { decode } from 'he'
+import { Component } from '@tinajs/tina'
+import posthtml from 'posthtml'
+import wxio from 'wxio'
+
+function addTagnameToClass (prefix = '') {
+  return (tree) => {
+    return tree.walk((node) => {
+      var classnames
+      if (typeof node !== 'object') {
+        return node
+      }
+      if (!node.attrs) {
+        node.attrs = {}
+      }
+      classnames = (node.attrs.class || '').trim().split(/\s+/g)
+      node.attrs.class = classnames.concat(prefix + node.tag).join(' ').trim()
+      return node
+    })
+  }
+}
+
+function postRichText (content) {
+  return posthtml().use(addTagnameToClass()).process(content, { sync: true }).html
+}
+
+Component.define(({
+  properties: {
+    article: Object,
+  },
+  data: {
+    nodes: '',
+  },
+
+  compute (data) {
+    let { article } = data
+    return {
+      nodes: postRichText(decode(article.content || '')),
+      originalLinkMessage: JSON.stringify({
+        type: 'link',
+        link: {
+          title: article.title,
+          url: article.url,
+          thumbnail: article.lead_image_url,
+        },
+      }),
+    }
+  },
+
+  methods: {
+    tapUrl () {
+      if (!this.data.article || !this.data.article.url) {
+        return
+      }
+      this.$confirm({
+        title: '访问来源网页',
+        content: '请复制链接后在浏览器中粘贴访问',
+        confirmText: '复制',
+      })
+        .then(() => wxio.setClipboardData({ data: this.data.article.url }))
+        .then(() => wxio.showToast({ title: '已复制', icon: 'success' }))
+    },
+  },
+}))
+</script>
+
+<style lang="less">
+.reader-component {
+  background-color: #fff;
+  color: #333;
+  width: 100%;
+  padding: 32px;
+  box-sizing: border-box;
+  overflow: hidden;
+  .loading {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+  }
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1.2em;
+    margin-bottom: 1em;
+  }
+  .meta {
+    font-size: 12px;
+    color: #666;
+    margin: 2em 0 3em;
+    .url {
+      text-decoration: underline;
+      overflow: hidden;
+      word-break: break-all;
+      word-wrap: break-word;
+    }
+    .original {
+      margin: 1em 0;
+      button {
+        border: 1px solid #ddd;
+        font-size: 12px;
+        color: #333;
+        font-style: italic;
+      }
+    }
+  }
+  .reader {
+    line-height: 1.8em;
+    font-size: 14px;
+    .div, .p {
+      line-height: 1.8em;
+    }
+    .article, .section, .p {
+      margin-bottom: 1em;
+    }
+    .small {
+      font-size: 0.5em;
+    }
+    .a {
+      color: color(#ff6600 tint(50%));
+      text-decoration: underline;
+    }
+    .img {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+      margin: 1em 0;
+    }
+    .h1, .h2, .h3, .h4, .h5 {
+      margin-top: 1em;
+      padding: 1em 0;
+      line-height: 1.2em;
+      font-weight: bold;
+    }
+    .h1 {
+      font-size: 22px;
+    }
+    .h2 {
+      font-size: 20px;
+    }
+    .h3 {
+      font-size: 18px;
+    }
+    .h4 {
+      font-size: 16px;
+    }
+    .h5 {
+      font-size: 15px;
+    }
+  }
+}
+</style>

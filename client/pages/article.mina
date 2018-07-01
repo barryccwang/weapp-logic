@@ -1,0 +1,79 @@
+<config>
+{
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#f2f3f5",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "hn-reader": "/components/reader.mina"
+  }
+}
+</config>
+
+<template>
+  <view class="article-view">
+    <hn-reader class="reader" article="{{ article }}" />
+    <view class="comments">
+      <view class="button" bindtap="tapComments">Comments on Hacker News</view>
+    </view>
+  </view>
+</template>
+
+<script>
+import { decode } from 'he'
+import { Page } from '@tinajs/tina'
+
+import { fetchArticle } from '../api'
+
+Page.define(({
+  data: {
+    article: {},
+  },
+
+  onLoad () {
+    fetchArticle(this.$route.query.id)
+      .then((article) => this.setData({ article }))
+      .finally(this.$loading())
+  },
+  onShareAppMessage () {
+    let article = this.data.article || {}
+    return {
+      title: article.title ? `${article.title}` : 'HackerNews 热点',
+    }
+  },
+
+  methods: {
+    tapComments () {
+      this.$router.navigate(`/pages/item?id=${this.$route.query.id}`)
+    },
+  },
+}))
+</script>
+
+<style lang="less">
+.article-view {
+  background-color: #fff;
+  .reader {
+    display: block;
+    padding-bottom: 96px;
+  }
+  .comments {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 96px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    .button {
+      padding: 1em 2em;
+      border-radius: 8px;
+      background: #ff6600;
+      color: #fff;
+      box-shadow: 0 2px 32px 0px rgba(0,0,0,0.35)
+    }
+  }
+}
+</style>
